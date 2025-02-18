@@ -23,7 +23,7 @@ RAM : 4gb or more
 Storage : 500gb or more
 Processor : i3 or more | ryzon3 or more
 
-# Size of tool
+### Size of tool
 Installed Size for both OS is 100 mb
 
 # Installation Steps
