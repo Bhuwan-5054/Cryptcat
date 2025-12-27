@@ -1,0 +1,869 @@
+# 🚀 CRYPTCAT PROJECT - COMPLETE ARCHITECTURE & CODE STRUCTURE
+# Version: 1.0.0
+# Last Updated: 2024
+# Project URL: https://github.com/Bhuwan-5054/Cryptcat
+
+================================================================================
+# 📋 TABLE OF CONTENTS
+================================================================================
+
+1. PROJECT OVERVIEW
+2. CORE ARCHITECTURE
+3. COMPLETED FILES & CODE
+4. TECHNICAL IMPLEMENTATIONS
+5. SECURITY FEATURES
+6. BUILD SYSTEM
+7. TESTING STRATEGY
+8. DEVELOPMENT GUIDELINES
+9. NEXT STEPS
+
+================================================================================
+# 1. PROJECT OVERVIEW
+================================================================================
+
+## Project Name: Cryptcat
+## Tagline: "Encrypted connections made simple"
+## Description: Secure Netcat replacement with Twofish-256 encryption
+
+## Key Features:
+✅ Encrypted networking (Twofish-256-CFB)
+✅ Cross-platform (Windows/Linux/macOS)
+✅ File transfer with integrity checking
+✅ Encrypted chat mode
+✅ P2P networking capability
+✅ Command-line and GUI interfaces
+
+## Technology Stack:
+- Language: C11 with platform-specific extensions
+- Cryptography: OpenSSL (Twofish, SHA256, HMAC, PBKDF2)
+- Networking: POSIX sockets / WinSock2
+- GUI: Electron + Vue.js (planned)
+- Build: CMake + Make
+
+================================================================================
+# 2. CORE ARCHITECTURE
+================================================================================
+
+## LAYERED ARCHITECTURE:
+
+┌─────────────────────────────────────┐
+│         APPLICATION LAYER           │
+│  • CLI Interface (main.c)           │
+│  • GUI (Electron - planned)         │
+│  • Configuration management         │
+├─────────────────────────────────────┤
+│         SERVICE LAYER               │
+│  • File transfer protocol           │
+│  • Chat system                      │
+│  • P2P networking                   │
+│  • Remote command execution         │
+├─────────────────────────────────────┤
+│         PROTOCOL LAYER              │
+│  • Message framing                  │
+│  • Handshake protocol               │
+│  • Encryption/decryption            │
+│  • Error handling                   │
+├─────────────────────────────────────┤
+│         NETWORK LAYER               │
+│  • TCP/UDP communication            │
+│  • Connection management            │
+│  • Platform abstraction             │
+├─────────────────────────────────────┤
+│         CRYPTO LAYER                │
+│  • Twofish-256-CFB encryption       │
+│  • HMAC-SHA256 authentication       │
+│  • PBKDF2 key derivation            │
+│  • Secure random generation         │
+└─────────────────────────────────────┘
+
+## ENCRYPTION SCHEME:
+
+1. PASSWORD → PBKDF2-HMAC-SHA256 → 64-byte key material
+   • 200,000 iterations
+   • Random 32-byte salt
+   
+2. Split key material:
+   • First 32 bytes: Encryption key
+   • Next 32 bytes: HMAC key
+   
+3. Per message:
+   • Generate random 16-byte IV
+   • Encrypt with Twofish-256-CFB
+   • Calculate HMAC-SHA256(sequence + ciphertext)
+   • Send: IV + ciphertext + HMAC
+
+================================================================================
+# 3. COMPLETED FILES & CODE
+================================================================================
+
+## ✅ COMPLETED: src/core/ (8 files)
+
+### 1. crypto_engine.c - Cryptographic Engine
+   • Twofish-256-CFB implementation
+   • HMAC-SHA256 integrity checking
+   • PBKDF2 key derivation (200k iterations)
+   • Secure session management
+   • Replay protection with sequence numbers
+
+### 2. network_layer.c - Network Abstraction
+   • Cross-platform socket API
+   • Connection state management
+   • Non-blocking I/O with select()
+   • Automatic reconnection logic
+   • Timeout handling
+
+### 3. protocol.c - Communication Protocol
+   • Message framing with headers
+   • Secure handshake protocol
+   • CRC32 checksum verification
+   • Keepalive mechanism
+   • Error message formatting
+
+### 4. file_transfer.c - File Transfer System
+   • Chunked file transfer (16KB chunks)
+   • Progress tracking and reporting
+   • SHA256 file integrity verification
+   • Resume capability
+   • Concurrent transfer support
+
+### 5. main.c - Application Entry Point
+   • Command-line argument parsing
+   • Mode selection (listen/connect/chat/file)
+   • Signal handling for clean shutdown
+   • Main event loop
+
+### 6. chat_mode.c - Encrypted Chat
+   • Real-time message exchange
+   • Typing indicator support
+   • Message history
+   • Multiple participant support
+
+### 7. p2p_network.c - Peer-to-Peer Networking
+   • Distributed peer discovery
+   • NAT traversal techniques
+   • Mesh network routing
+   • Bootstrap node support
+
+### 8. command_exec.c - Remote Command Execution
+   • Secure shell functionality
+   • Input/output redirection
+   • Environment variable handling
+   • Permission management
+
+## ✅ COMPLETED: src/platform/ (3 files)
+
+### 1. unix_network.c - Unix/Linux/macOS Implementation
+   • POSIX socket API wrapper
+   • /dev/urandom for entropy
+   • pthread for threading
+   • File system operations
+
+### 2. win_network.c - Windows Implementation
+   • WinSock2 API wrapper
+   • CryptGenRandom for entropy
+   • Windows threads API
+   • Registry and file operations
+
+### 3. os_utils.c - Cross-Platform Utilities
+   • Platform detection
+   • System information gathering
+   • Process management
+   • Environment variable handling
+
+## ✅ COMPLETED: src/utils/ (6 files)
+
+### 1. logger.c - Logging System
+   • Multiple log levels (DEBUG to CRITICAL)
+   • File and console output
+   • Log rotation
+   • Colored terminal output
+
+### 2. error_handler.c - Error Management
+   • Comprehensive error codes
+   • Context-aware error reporting
+   • Stack trace collection
+   • Error recovery mechanisms
+
+### 3. memory_utils.c - Secure Memory Handling
+   • Memory allocation with zeroing
+   • Locked memory for sensitive data
+   • Memory pool implementation
+   • Leak detection
+
+### 4. config_parser.c - Configuration Management
+   • INI-style configuration files
+   • Section and key-value parsing
+   • Type conversion (int, float, bool)
+   • Auto-save capability
+
+### 5. string_utils.c - String Operations
+   • Safe string copying/concatenation
+   • String splitting and joining
+   • Case conversion
+   • Whitespace trimming
+
+### 6. hex_utils.c - Encoding/Decoding
+   • Hex to binary conversion
+   • Base64 encoding/decoding
+   • CRC32 calculation
+   • Hex dump formatting
+
+## ✅ COMPLETED: src/include/ (8 headers)
+
+### 1. crypto.h - Cryptographic API
+   • Session creation/destruction
+   • Encryption/decryption functions
+   • Key derivation API
+   • Random number generation
+
+### 2. network.h - Networking API
+   • Connection management
+   • Data send/receive functions
+   • Listener creation
+   • Connection information
+
+### 3. protocol.h - Protocol API
+   • Message types and constants
+   • Handshake functions
+   • Message sending/receiving
+   • Error codes
+
+### 4. file_transfer.h - File Transfer API
+   • Transfer initiation/completion
+   • Progress tracking
+   • Checksum verification
+   • Transfer control
+
+### 5. platform.h - Platform Abstraction API
+   • OS-specific function declarations
+   • Thread and mutex API
+   • File system operations
+   • System information
+
+### 6. utils.h - Utility Master Header
+   • Includes all utility headers
+   • Common macros (MIN, MAX, CLAMP)
+   • Byte order conversion macros
+
+### 7. logger.h - Logging API
+   • Log level definitions
+   • Logging function prototypes
+   • Convenience macros (LOG_INFO, etc.)
+
+### 8. error_handler.h - Error Handling API
+   • Error code definitions
+   • Error handling function prototypes
+   • ERROR_HANDLE macro
+
+================================================================================
+# 4. TECHNICAL IMPLEMENTATIONS
+================================================================================
+
+## CRYPTOGRAPHIC DETAILS:
+
+// Key derivation parameters
+#define KEY_SIZE 32           // 256-bit Twofish key
+#define IV_SIZE 16            // 128-bit IV for CFB mode
+#define SALT_SIZE 32          // PBKDF2 salt
+#define HMAC_SIZE 32          // SHA256 HMAC size
+#define PBKDF2_ITERATIONS 200000
+
+// Session structure
+typedef struct crypto_session_s {
+    unsigned char enc_key[KEY_SIZE];
+    unsigned char hmac_key[KEY_SIZE];
+    unsigned char iv[IV_SIZE];
+    EVP_CIPHER_CTX *encrypt_ctx;
+    EVP_CIPHER_CTX *decrypt_ctx;
+    uint64_t seq_num_send;
+    uint64_t seq_num_recv;
+    time_t created_at;
+    int is_authenticated;
+} crypto_session_t;
+
+## NETWORK MESSAGE FORMAT:
+
+// Protocol header (26 bytes)
+struct message_header {
+    uint8_t magic[8];        // "CRYPTCAT"
+    uint8_t version_major;   // 1
+    uint8_t version_minor;   // 0
+    uint8_t type;            // Message type
+    uint32_t length;         // Payload length
+    uint32_t checksum;       // CRC32 of payload
+    uint64_t timestamp;      // Unix timestamp
+    uint64_t sequence;       // Sequence number
+};
+
+// Message types
+enum {
+    MSG_HANDSHAKE_INIT = 0x01,
+    MSG_HANDSHAKE_RESPONSE = 0x02,
+    MSG_HANDSHAKE_COMPLETE = 0x03,
+    MSG_DATA = 0x10,
+    MSG_FILE_START = 0x20,
+    MSG_FILE_CHUNK = 0x21,
+    MSG_FILE_END = 0x22,
+    MSG_KEEPALIVE = 0x30,
+    MSG_DISCONNECT = 0x40,
+    MSG_ERROR = 0xFF
+};
+
+## FILE TRANSFER PROTOCOL:
+
+1. SENDER: MSG_FILE_START
+   • Filename (string)
+   • File size (uint64_t)
+   • SHA256 checksum (32 bytes)
+
+2. For each 16KB chunk:
+   SENDER: MSG_FILE_CHUNK
+   • Chunk number (uint32_t)
+   • Data length (uint32_t)
+   • Encrypted data
+   • CRC32 checksum
+
+3. SENDER: MSG_FILE_END
+   • Final verification
+   • Transfer statistics
+
+## CONNECTION STATES:
+
+typedef enum {
+    STATE_DISCONNECTED = 0,
+    STATE_CONNECTING,
+    STATE_CONNECTED,
+    STATE_AUTHENTICATING,
+    STATE_READY,
+    STATE_TRANSFERRING,
+    STATE_CLOSING,
+    STATE_ERROR
+} connection_state_t;
+
+================================================================================
+# 5. SECURITY FEATURES
+================================================================================
+
+## ✅ IMPLEMENTED SECURITY:
+
+1. CRYPTOGRAPHIC PROTECTION
+   • Twofish-256-CFB encryption
+   • HMAC-SHA256 integrity verification
+   • PBKDF2 key strengthening (200k iterations)
+   • Random IV per session
+
+2. PROTOCOL SECURITY
+   • Sequence numbers for replay protection
+   • Timestamp validation
+   • CRC32 checksums for data integrity
+   • Connection timeout (30 seconds)
+
+3. MEMORY SECURITY
+   • Secure zeroing of sensitive data
+   • Locked memory for cryptographic keys
+   • Bounds checking on all buffers
+   • Memory pool for predictable allocation
+
+4. INPUT VALIDATION
+   • All user input sanitized
+   • Buffer length verification
+   • Type checking
+   • Range validation
+
+## 🔲 PLANNED SECURITY ENHANCEMENTS:
+
+1. Perfect Forward Secrecy (ECDH key exchange)
+2. Certificate-based authentication
+3. Hardware security module support
+4. Side-channel attack mitigations
+5. Memory encryption for sensitive data
+
+================================================================================
+# 6. BUILD SYSTEM
+================================================================================
+
+## CMAKE CONFIGURATION (CMakeLists.txt):
+
+cmake_minimum_required(VERSION 3.10)
+project(cryptcat VERSION 1.0.0)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Find OpenSSL
+find_package(OpenSSL REQUIRED)
+
+# Platform detection
+if(WIN32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN)
+    set(PLATFORM_SOURCES src/platform/win_network.c)
+else()
+    set(PLATFORM_SOURCES src/platform/unix_network.c)
+endif()
+
+# Source files
+set(SOURCES
+    src/core/main.c
+    src/core/crypto_engine.c
+    src/core/network_layer.c
+    src/core/protocol.c
+    src/core/file_transfer.c
+    src/core/chat_mode.c
+    src/core/p2p_network.c
+    src/core/command_exec.c
+    src/platform/os_utils.c
+    ${PLATFORM_SOURCES}
+    src/utils/logger.c
+    src/utils/error_handler.c
+    src/utils/memory_utils.c
+    src/utils/config_parser.c
+    src/utils/string_utils.c
+    src/utils/hex_utils.c
+)
+
+# Include directories
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/include
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+# Create executable
+add_executable(cryptcat ${SOURCES})
+target_link_libraries(cryptcat ${OPENSSL_LIBRARIES} pthread)
+
+## MAKEFILE SUPPORT:
+
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -std=c11 -fstack-protector-strong
+LDFLAGS = -lssl -lcrypto -lpthread
+
+# Platform detection
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    CFLAGS += -D_LINUX
+endif
+ifeq ($(UNAME_S),Darwin)
+    CFLAGS += -D_DARWIN
+    LDFLAGS += -framework Security
+endif
+
+SOURCES = $(wildcard src/core/*.c) \
+          $(wildcard src/platform/*.c) \
+          $(wildcard src/utils/*.c)
+
+OBJS = $(SOURCES:.c=.o)
+
+cryptcat: $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(OBJS) cryptcat
+
+================================================================================
+# 7. TESTING STRATEGY
+================================================================================
+
+## TEST TYPES REQUIRED:
+
+1. UNIT TESTS
+   • Individual function testing
+   • Mock dependencies
+   • Edge case validation
+   • Memory leak detection
+
+2. INTEGRATION TESTS
+   • Client-server communication
+   • File transfer verification
+   • Protocol compliance
+   • Cross-platform compatibility
+
+3. SECURITY TESTS
+   • Fuzzing (AFL/libFuzzer)
+   • Penetration testing
+   • Cryptographic validation
+   • Protocol analysis
+
+4. PERFORMANCE TESTS
+   • Throughput measurement
+   • Latency testing
+   • Memory profiling
+   • Scalability testing
+
+## TEST DIRECTORY STRUCTURE:
+
+tests/
+├── unit/                    # Unit tests
+│   ├── test_crypto.c
+│   ├── test_network.c
+│   ├── test_protocol.c
+│   ├── test_file_transfer.c
+│   ├── test_platform.c
+│   └── test_utils.c
+├── integration/             # Integration tests
+│   ├── test_end_to_end.c
+│   ├── test_client_server.c
+│   ├── test_file_transfer_int.c
+│   └── test_chat_mode.c
+├── fuzz/                   # Fuzzing tests
+│   ├── fuzz_crypto.c
+│   ├── fuzz_protocol.c
+│   ├── fuzz_network.c
+│   └── fuzz_utils.c
+├── performance/            # Performance tests
+│   ├── benchmark_crypto.c
+│   ├── benchmark_network.c
+│   ├── benchmark_file_transfer.c
+│   └── stress_test.c
+├── security/               # Security tests
+│   ├── penetration/
+│   ├── vulnerability/
+│   └── audit/
+├── test_data/              # Test data
+│   ├── sample_files/
+│   ├── keys/
+│   └── pcap/
+├── scripts/                # Test scripts
+│   ├── run_all_tests.sh
+│   ├── run_unit_tests.sh
+│   ├── coverage_report.sh
+│   └── setup_test_env.sh
+└── frameworks/             # Test frameworks
+    ├── test_harness.h
+    ├── test_runner.c
+    └── mock_functions.c
+
+================================================================================
+# 8. DEVELOPMENT GUIDELINES
+================================================================================
+
+## CODING STANDARDS:
+
+1. CODE FORMATTING
+   • 4-space indentation (no tabs)
+   • 80-character line limit
+   • snake_case for variables/functions
+   • UPPER_CASE for constants/macros
+   • Opening braces on same line
+
+2. COMMENTING
+   • Doxygen-style for public APIs
+   • Function headers explaining purpose
+   • Complex algorithm explanations
+   • TODO/FIXME comments for pending work
+
+3. ERROR HANDLING PATTERN:
+   
+   int function_name(params) {
+       int result = SUCCESS;
+       
+       // Validate inputs
+       if (!valid_input) {
+           result = ERROR_INVALID_PARAM;
+           goto cleanup;
+       }
+       
+       // Allocate resources
+       resource_t *res = allocate_resource();
+       if (!res) {
+           result = ERROR_MEMORY;
+           goto cleanup;
+       }
+       
+       // Main logic
+       result = perform_operation(res);
+       if (result != SUCCESS) {
+           goto cleanup;
+       }
+       
+   cleanup:
+       if (res) free_resource(res);
+       return result;
+   }
+
+4. MEMORY MANAGEMENT:
+   
+   // Always use secure functions
+   void *data = secure_malloc(size);
+   // ... use data ...
+   secure_free(&data, size);
+   
+   // For sensitive data
+   void *sensitive = allocate_locked_memory(size);
+   // ... use sensitive data ...
+   free_locked_memory(sensitive, size);
+
+5. SECURITY PRACTICES:
+   • Never log sensitive data
+   • Always validate external input
+   • Use constant-time comparisons for crypto
+   • Zero memory before freeing sensitive data
+   • Check all return values
+
+================================================================================
+# 9. NEXT STEPS
+================================================================================
+
+## CURRENT STATUS: Core engine 100% complete
+
+## IMMEDIATE TASKS (TESTING PHASE):
+
+1. CREATE TEST HARNESS FRAMEWORK
+   • Test runner with statistics
+   • Mock function infrastructure
+   • Assertion macros
+   • Coverage reporting
+
+2. WRITE UNIT TESTS FOR:
+   • crypto_engine.c - Encryption/decryption tests
+   • network_layer.c - Connection tests
+   • protocol.c - Message format tests
+   • file_transfer.c - Transfer verification
+   • All utility functions
+
+3. CREATE INTEGRATION TESTS:
+   • Full client-server communication
+   • Encrypted file transfer
+   • Chat mode functionality
+   • P2P network testing
+
+4. IMPLEMENT SECURITY TESTS:
+   • Fuzzing for all input interfaces
+   • Cryptographic validation
+   • Protocol fuzzing
+   • Memory safety testing
+
+## UPCOMING PHASES:
+
+PHASE 3: GUI DEVELOPMENT
+   • Electron main process
+   • Vue.js frontend
+   • Real-time updates
+   • Configuration interface
+
+PHASE 4: INSTALLER CREATION
+   • Windows: NSIS installer
+   • Linux: DEB/RPM/AppImage
+   • macOS: DMG package
+   • Cross-platform: Snap/Flatpak
+
+PHASE 5: ADVANCED FEATURES
+   • Plugin system
+   • Mobile applications
+   • Cloud synchronization
+   • Advanced monitoring
+
+## CRITICAL FILES TO CREATE NEXT:
+
+### 1. tests/frameworks/test_harness.h
+   • Test assertion macros
+   • Test case registration
+   • Result reporting
+   • Setup/teardown functions
+
+### 2. tests/unit/test_crypto.c
+   • Key derivation tests
+   • Encryption/decryption tests
+   • HMAC verification tests
+   • Random number generation tests
+
+### 3. tests/integration/test_end_to_end.c
+   • Complete client-server workflow
+   • Authentication process
+   • Data transfer verification
+   • Error recovery testing
+
+### 4. tests/scripts/run_all_tests.sh
+   • Automated test execution
+   • Coverage report generation
+   • Result aggregation
+   • Continuous integration setup
+
+================================================================================
+# 🔧 BUILD & RUN INSTRUCTIONS
+================================================================================
+
+## QUICK START:
+
+# 1. Clone repository
+git clone https://github.com/Bhuwan-5054/Cryptcat
+cd Cryptcat
+
+# 2. Install dependencies
+# Ubuntu/Debian:
+sudo apt-get install build-essential libssl-dev cmake
+
+# macOS:
+brew install openssl cmake
+
+# Windows:
+# Install Visual Studio Build Tools and OpenSSL
+
+# 3. Build
+mkdir build && cd build
+cmake ..
+make
+
+# 4. Run
+./cryptcat --help
+
+## BASIC USAGE:
+
+# Listen mode (server)
+./cryptcat -k "my_password" -l -p 4444
+
+# Connect mode (client)
+./cryptcat -k "my_password" 192.168.1.100 4444
+
+# File transfer
+./cryptcat -k "password" -f document.pdf 192.168.1.100 5555
+
+# Chat mode
+./cryptcat -k "secret" -c 192.168.1.100 4444
+
+================================================================================
+# 📞 CONTINUATION INSTRUCTIONS
+================================================================================
+
+When continuing development in a new chat, provide this information:
+
+## KEY POINTS TO MENTION:
+
+1. "We're building Cryptcat - an encrypted Netcat replacement with Twofish-256 encryption"
+2. "Current status: Core engine 100% complete, working on test suite"
+3. "All source code is in the 'src/' directory with clear separation"
+4. "Use the established coding patterns and security practices"
+
+## CURRENT TASK: COMPLETING TESTS FOLDER
+
+• Create test harness framework
+• Write comprehensive unit tests
+• Implement integration tests
+• Add fuzzing tests for security
+• Create performance benchmarks
+• Write test automation scripts
+
+## PROJECT STRUCTURE TO MAINTAIN:
+
+src/
+├── core/           # Main application logic
+├── platform/       # OS-specific implementations
+├── utils/         # Utility functions
+└── include/       # Header files
+
+tests/             # Test suite (IN PROGRESS)
+gui/               # GUI application (NEXT)
+installer/         # Installer packages
+docs/              # Documentation
+scripts/           # Build/utility scripts
+
+## SECURITY REQUIREMENTS:
+
+• Never modify cryptographic parameters without review
+• Maintain secure memory practices
+• Keep all input validation
+• Preserve error handling for crypto failures
+• Continue using established secure patterns
+
+================================================================================
+# 🎯 PROJECT COMPLETION CHECKLIST
+================================================================================
+
+## ✅ COMPLETED (100%):
+
+[✓] Core cryptographic engine
+[✓] Network abstraction layer
+[✓] Communication protocol
+[✓] File transfer system
+[✓] Platform implementations (Unix/Windows)
+[✓] Utility functions (logging, error handling, etc.)
+[✓] Command-line interface
+[✓] Header files and API definitions
+
+## 🚧 IN PROGRESS (TESTING):
+
+[ ] Test harness framework
+[ ] Unit tests for all modules
+[ ] Integration tests
+[ ] Security fuzzing tests
+[ ] Performance benchmarks
+[ ] Test automation scripts
+
+## 🔲 FUTURE WORK:
+
+[ ] GUI application (Electron + Vue.js)
+[ ] Installer packages for all platforms
+[ ] Advanced P2P networking features
+[ ] Plugin system
+[ ] Mobile applications
+[ ] Cloud integration
+[ ] Advanced monitoring and analytics
+
+================================================================================
+# 📊 TECHNICAL SPECIFICATIONS
+================================================================================
+
+## PERFORMANCE TARGETS:
+
+• Encryption speed: > 100 MB/s on modern hardware
+• Connection setup: < 100ms
+• File transfer overhead: < 5%
+• Memory usage: < 50MB base + 1MB per connection
+• CPU usage: < 10% during idle, < 50% during transfer
+
+## COMPATIBILITY:
+
+• Operating Systems: Windows 7+, Linux 2.6+, macOS 10.10+
+• Architectures: x86_64, ARM64, x86
+• Network: IPv4, IPv6
+• File Systems: All major (ext4, NTFS, APFS, etc.)
+
+## LIMITATIONS:
+
+• Maximum file size: 2^64 bytes (theoretical)
+• Maximum connections: 1024 simultaneous
+• Maximum password length: 1024 characters
+• Minimum key derivation time: 100ms
+
+================================================================================
+# 🆘 TROUBLESHOOTING
+================================================================================
+
+## COMMON ISSUES:
+
+1. BUILD FAILURES:
+   • Ensure OpenSSL is installed
+   • Check C11 compiler availability
+   • Verify CMake version (3.10+)
+
+2. CONNECTION ISSUES:
+   • Check firewall settings
+   • Verify port availability
+   • Ensure correct password on both ends
+
+3. PERFORMANCE ISSUES:
+   • Check network bandwidth
+   • Verify system resources
+   • Monitor for memory leaks
+
+4. SECURITY CONCERNS:
+   • Always use strong passwords
+   • Keep software updated
+   • Monitor for unusual activity
+
+## DEBUGGING:
+
+# Enable debug logging
+./cryptcat -v -k "password" 127.0.0.1 4444
+
+# Check system logs
+journalctl -f | grep cryptcat  # Linux
+Event Viewer                  # Windows
+Console.app                   # macOS
+
+================================================================================
+END OF ARCHITECTURE DOCUMENT
+================================================================================
+
+# Save this file as: CRYPTCAT_ARCHITECTURE.txt
+# Use this document to continue development in new chat sessions
+# Last updated: Complete core implementation, starting test suite
